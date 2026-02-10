@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="format-detection" content="telephone=no">
-    <title>業務獵人：榮耀戰場</title>
+    <title>業務獵人：賽季結算</title>
     <link rel="apple-touch-icon" href="icon.png">
     
     <style>
@@ -15,7 +14,7 @@
             --card-bg: #1e1e1e;
             --text-color: #ffffff;
             --highlight: #FFD700;
-            --btn-blue: #3498db;
+            --danger: #e74c3c;
         }
 
         body {
@@ -28,9 +27,8 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px 10px;
+            user-select: none; -webkit-user-select: none;
             overscroll-behavior-y: none;
-            user-select: none; 
-            -webkit-user-select: none;
         }
 
         .game-container {
@@ -45,32 +43,40 @@
             box-sizing: border-box;
         }
 
-        /* 天氣徽章 */
-        .weather-badge {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #444;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            margin-bottom: 15px;
-            display: inline-flex;
-            align-items: center;
+        /* 狀態列 */
+        .buff-bar {
+            display: flex;
+            justify-content: center;
             gap: 5px;
-            transition: all 0.3s;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
         }
-        .weather-hot { background: linear-gradient(45deg, #e74c3c, #c0392b); border-color: #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.4); }
-        .weather-cold { background: linear-gradient(45deg, #3498db, #2980b9); border-color: #3498db; box-shadow: 0 0 10px rgba(52, 152, 219, 0.4); }
+        .buff-badge {
+            font-size: 0.75em;
+            padding: 4px 8px;
+            border-radius: 12px;
+            background: #333;
+            border: 1px solid #555;
+            color: #aaa;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .buff-active {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: var(--highlight);
+            color: var(--highlight);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+        }
 
         /* 角色區域 */
         .character-frame {
-            width: 160px;
-            height: 160px;
-            margin: 5px auto 15px;
+            width: 140px;
+            height: 140px;
+            margin: 5px auto 10px;
             border: 4px solid var(--highlight);
             border-radius: 50%;
             overflow: hidden;
             background-color: #333;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
             position: relative;
         }
         .character-img { width: 100%; height: 100%; object-fit: cover; }
@@ -78,61 +84,43 @@
         .rank-badge {
             background: linear-gradient(135deg, #FFD700, #FFA500);
             color: #000;
-            padding: 5px 20px;
+            padding: 4px 12px;
             border-radius: 50px;
             font-weight: 800;
-            font-size: 1.1em;
+            font-size: 0.9em;
             display: inline-block;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.3);
-            min-width: 150px; /* 避免稱號變長時跳動 */
+            margin-bottom: 5px;
         }
 
         /* 數據顯示 */
         .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 15px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin-bottom: 15px; background: rgba(255,255,255,0.05);
+            padding: 10px; border-radius: 15px;
         }
-        .stat-item h3 { margin: 0; font-size: 1.6em; color: #4cd137; }
+        .stat-item h3 { margin: 0; font-size: 1.5em; color: #4cd137; }
         .stat-item p { margin: 2px 0 0; font-size: 0.8em; color: #aaa; }
 
         /* 進度條 */
         .progress-container {
-            background-color: #333;
-            border-radius: 10px;
-            height: 20px;
-            width: 100%;
-            margin-bottom: 20px;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid #444;
+            background-color: #333; border-radius: 10px; height: 18px;
+            width: 100%; margin-bottom: 15px; overflow: hidden; position: relative; border: 1px solid #444;
         }
         .progress-bar {
             background: linear-gradient(90deg, #00a8ff, #9c88ff);
-            height: 100%;
-            width: 0%;
-            transition: width 0.5s ease;
+            height: 100%; width: 0%; transition: width 0.5s ease;
         }
         .progress-text {
             position: absolute; top: 0; width: 100%; text-align: center;
-            line-height: 20px; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            line-height: 18px; font-size: 11px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
             z-index: 2;
         }
 
         /* 按鈕區 */
-        .actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .btn {
-            border: none; padding: 15px 5px; border-radius: 12px;
-            font-size: 0.95em; font-weight: bold; cursor: pointer; color: white;
+            border: none; padding: 12px 5px; border-radius: 10px;
+            font-size: 0.9em; font-weight: bold; cursor: pointer; color: white;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             touch-action: manipulation; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             transition: transform 0.1s;
@@ -143,29 +131,28 @@
         .btn-defend { background: linear-gradient(to bottom right, #7f8c8d, #95a5a6); border: 1px solid #bdc3c7; }
         .btn-target { background: linear-gradient(to bottom right, #27ae60, #2ecc71); }
         .btn-contract { background: linear-gradient(to bottom right, #8e44ad, #9b59b6); }
-        .btn-dungeon { grid-column: span 2; background: linear-gradient(45deg, #c0392b, #e74c3c); font-size: 1.1em; padding: 15px; }
-        
+        .btn-dungeon { grid-column: span 2; background: linear-gradient(45deg, #c0392b, #e74c3c); font-size: 1.1em; padding: 12px; }
+        .btn-recruit { 
+            grid-column: span 2; 
+            background: linear-gradient(135deg, #FDC830, #F37335); 
+            border: 2px solid #fff; color: #000; font-size: 1.1em; 
+            padding: 12px; box-shadow: 0 0 10px rgba(243, 115, 53, 0.4);
+        }
+
         .xp-tag { font-size: 0.7em; opacity: 0.9; margin-top: 3px; font-weight: normal; }
 
-        /* 功能按鈕區 */
+        /* 功能按鈕 */
         .utility-btns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid #333;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            margin-top: 20px; padding-top: 15px; border-top: 1px solid #333;
         }
         .util-btn {
             background: transparent; border: 1px solid #555; color: #888;
-            padding: 10px 15px; border-radius: 10px; font-size: 0.9em;
-            cursor: pointer;
+            padding: 8px 10px; border-radius: 10px; font-size: 0.85em; cursor: pointer;
         }
         .report-btn {
-            grid-column: span 2;
-            background: linear-gradient(90deg, #f39c12, #d35400);
-            color: white; border: none; font-weight: bold;
-            font-size: 1.1em;
+            grid-column: span 2; background: linear-gradient(90deg, #f39c12, #d35400);
+            color: white; border: none; font-weight: bold; font-size: 1em;
             box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
         }
 
@@ -174,63 +161,47 @@
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); z-index: 1000;
             justify-content: center; align-items: center; flex-direction: column; text-align: center;
-            padding: 20px; box-sizing: border-box;
-            overflow-y: auto;
+            padding: 20px; box-sizing: border-box; overflow-y: auto;
         }
-        .modal h2 { color: #FFD700; font-size: 2em; margin: 10px 0; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        .modal h2 { color: #FFD700; font-size: 1.8em; margin: 10px 0; }
         
-        /* 結算表樣式 */
-        .report-card {
-            background: #2d2d2d; border-radius: 15px; padding: 20px;
-            width: 100%; max-width: 350px; text-align: left; margin-bottom: 20px;
-            border: 1px solid #444;
+        /* 列表樣式 */
+        .list-card { background: #2d2d2d; border-radius: 15px; padding: 15px; width: 100%; max-width: 350px; text-align: left; margin-bottom: 15px; border: 1px solid #444; }
+        .list-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .list-row:last-child { border: none; margin-bottom: 0; }
+        .list-label { color: #aaa; font-size: 0.9em; }
+        .list-val { color: #fff; font-weight: bold; }
+        
+        .ach-item { background: linear-gradient(90deg, #2c3e50, transparent); padding: 6px 10px; margin-bottom: 4px; border-left: 3px solid #FFD700; color: #ecf0f1; font-size: 0.85em; }
+        .ore-star { border-color: #9b59b6; box-shadow: 0 0 5px #9b59b6; }
+        
+        .close-btn { padding: 10px 30px; background: #FFD700; color: #000; border: none; border-radius: 30px; font-weight: 900; margin-top: 10px; cursor: pointer; }
+        
+        /* 賽季結束專用樣式 */
+        .season-end-btn {
+            background: linear-gradient(90deg, #c0392b, #e74c3c);
+            color: white; box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+            padding: 15px 40px; font-size: 1.2em; border: 2px solid #fff;
         }
-        .report-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .report-row:last-child { border: none; }
-        .report-label { color: #aaa; }
-        .report-val { color: #fff; font-weight: bold; }
-        
-        .achievement-list { text-align: left; width: 100%; max-width: 350px; margin-bottom: 20px; }
-        .ach-item {
-            background: linear-gradient(90deg, #2c3e50, transparent);
-            padding: 8px 12px; margin-bottom: 5px;
-            border-left: 4px solid #FFD700; color: #ecf0f1; font-size: 0.9em;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        .ore-iron { border-color: #95a5a6; }
-        .ore-gold { border-color: #f1c40f; }
-        .ore-diamond { border-color: #3498db; }
-        .ore-star { border-color: #9b59b6; box-shadow: 0 0 10px #9b59b6; }
 
-        .close-btn {
-            padding: 12px 40px; background: #FFD700; color: #000;
-            border: none; border-radius: 30px; font-weight: 900; font-size: 1.1em;
-            margin-top: 10px; cursor: pointer;
-        }
-        
         .evolving { animation: evolutionShake 2s ease-in-out forwards; }
-        @keyframes evolutionShake {
-            0% { transform: translate(0, 0) rotate(0deg); filter: brightness(1); }
-            50% { transform: translate(2px, -2px) rotate(1deg); filter: brightness(2); }
-            100% { transform: translate(0, 0) rotate(0deg); filter: brightness(5); }
-        }
-        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes evolutionShake { 0% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.1); filter: brightness(2); } 100% { transform: scale(1); filter: brightness(5); } }
 
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        <div id="weatherBadge" class="weather-badge" onclick="refreshWeather()">
-            <span id="weatherIcon">📡</span>
-            <span id="weatherText">讀取氣象中...</span>
+        <div class="buff-bar">
+            <div id="buff-weather" class="buff-badge" onclick="refreshWeather()">📡 氣象</div>
+            <div id="buff-time" class="buff-badge">🕐 午日行者</div>
+            <div id="buff-streak" class="buff-badge">🔥 連勝: 0天</div>
         </div>
 
-        <div class="rank-badge" id="rankBadge">新兵 (Lv.1)</div>
+        <div class="rank-badge" id="rankBadge">見習獵人 I</div>
         
         <div class="character-frame" id="charFrame">
-            <img src="level1.jpg" alt="角色" class="character-img" id="charImg" onerror="this.src='https://ui-avatars.com/api/?name=Soldier&background=random'">
+            <img src="level1.jpg" alt="角色" class="character-img" id="charImg" onerror="this.src='https://ui-avatars.com/api/?name=Hero&background=random'">
         </div>
 
         <div class="stats-grid">
@@ -255,7 +226,7 @@
                 <span class="xp-tag" id="xp-10">+10 XP</span>
             </button>
             <button class="btn btn-defend" onclick="handleAction('block', 30)">
-                🛡️ 格檔 (被拒)
+                🛡️ 格檔
                 <span class="xp-tag" id="xp-30">+30 XP</span>
             </button>
             <button class="btn btn-target" onclick="handleAction('target', 50)">
@@ -268,39 +239,75 @@
             </button>
             <button class="btn btn-dungeon" onclick="handleAction('dungeon', 400)">
                 🏪 超商副本
-                <span class="xp-tag" id="xp-400">CRITICAL! +400</span>
+                <span class="xp-tag" id="xp-400">CRIT +400</span>
+            </button>
+            <button class="btn btn-recruit" onclick="handleRecruit()">
+                💎 邀約面談
+                <span class="xp-tag" style="color:#000; font-weight:bold;">LEGEND +4000</span>
             </button>
         </div>
 
         <div class="utility-btns">
-            <button class="util-btn report-btn" onclick="showSettlement()">📊 今日結算 & 成就</button>
+            <button class="util-btn report-btn" onclick="showSettlement()">📊 今日結算 (存檔)</button>
+            <button class="util-btn" onclick="showLifetimeStats()">🏆 生涯統計</button>
             <button class="util-btn undo-btn" onclick="undoLastAction()">↩️ 復原</button>
-            <button class="util-btn" onclick="resetAll()" style="color:#d63031; border-color: #d63031;">⚠️ 刪除重練</button>
+            <button class="util-btn" onclick="requestReset()" style="color:#d63031; border-color: #d63031;">⚠️ 刪檔重來</button>
         </div>
     </div>
 
     <div class="modal" id="reportModal">
         <h2>今日戰報</h2>
-        <div class="report-card">
-            <div class="report-row"><span class="report-label">👋 探索次數</span><span class="report-val" id="rep-explore">0</span></div>
-            <div class="report-row"><span class="report-label">🛡️ 格檔次數</span><span class="report-val" id="rep-block">0</span></div>
-            <div class="report-row"><span class="report-label">📱 鎖定次數</span><span class="report-val" id="rep-target">0</span></div>
-            <div class="report-row"><span class="report-label">📜 契約+副本</span><span class="report-val" id="rep-bigwin">0</span></div>
-            <div class="report-row"><span class="report-label">🔥 最高連鎖</span><span class="report-val" id="rep-streak">0</span></div>
-            <div class="report-row"><span class="report-label">✨ 今日 XP</span><span class="report-val" id="rep-xp">0</span></div>
+        <div class="list-card">
+            <div class="list-row"><span class="list-label">👋 探索</span><span class="list-val" id="rep-explore">0</span></div>
+            <div class="list-row"><span class="list-label">🛡️ 格檔</span><span class="list-val" id="rep-block">0</span></div>
+            <div class="list-row"><span class="list-label">📱 鎖定</span><span class="list-val" id="rep-target">0</span></div>
+            <div class="list-row"><span class="list-label">💎 增員</span><span class="list-val" id="rep-recruit">0</span></div>
+            <div class="list-row"><span class="list-label">✨ 今日XP</span><span class="list-val" id="rep-xp">0</span></div>
+            <div class="list-row" style="border-top:1px dashed #555; margin-top:5px; padding-top:5px;">
+                <span class="list-label">🔥 連勝判定</span>
+                <span class="list-val" id="rep-streak-status">...</span>
+            </div>
         </div>
-        
-        <h3 style="color:#FFD700; margin:0 0 10px 0;">🏅 解鎖成就</h3>
-        <div class="achievement-list" id="achList"></div>
-
+        <h3>🏅 今日成就</h3>
+        <div class="list-card" id="achList" style="max-height:150px; overflow-y:auto;"></div>
         <button class="close-btn" onclick="resetDayAndClose()">開啟新的一天</button>
-        <button style="background:transparent; color:#888; border:none; margin-top:15px; text-decoration:underline;" onclick="document.getElementById('reportModal').style.display='none'">關閉 (不重置)</button>
+        <button style="background:transparent; color:#888; border:none; margin-top:10px; text-decoration:underline;" onclick="document.getElementById('reportModal').style.display='none'">關閉</button>
+    </div>
+
+    <div class="modal" id="statsModal">
+        <h2>🏆 生涯榮譽榜</h2>
+        <div class="list-card" id="lifetimeList" style="max-height:60vh; overflow-y:auto;"></div>
+        <button class="close-btn" onclick="document.getElementById('statsModal').style.display='none'">關閉</button>
+    </div>
+
+    <div class="modal" id="seasonEndModal" style="background: rgba(20, 5, 5, 0.98);">
+        <h2 style="color: #e74c3c; font-size: 2.2em; text-shadow: 0 0 20px red;">🏆 賽季總結算</h2>
+        <p style="color: #aaa;">本賽季最終成績單</p>
+        
+        <div class="list-card" style="border-color: #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.2);">
+            <div class="list-row" style="border-bottom: 2px solid #555; margin-bottom: 10px;">
+                <span class="list-label">📅 賽季期間</span>
+                <span class="list-val" id="season-date-range" style="font-size:0.9em; color:#FFD700;">-</span>
+            </div>
+            <div class="list-row"><span class="list-label">🛡️ 最終職階</span><span class="list-val" id="season-rank" style="color:#FFD700; font-size:1.1em;">-</span></div>
+            <div class="list-row"><span class="list-label">✨ 累積總 XP</span><span class="list-val" id="season-xp">-</span></div>
+            <div class="list-row"><span class="list-label">🔥 最高連勝</span><span class="list-val" id="season-streak">-</span></div>
+            <div class="list-row"><span class="list-label">💎 成功增員</span><span class="list-val" id="season-recruit">-</span></div>
+        </div>
+
+        <h3>🏅 生涯成就統計</h3>
+        <div class="list-card" id="seasonAchList" style="max-height:200px; overflow-y:auto; border: 1px solid #555;">
+            </div>
+
+        <p style="color: #d63031; font-weight: bold; margin-top: 10px;">⚠️ 確認後將開啟新賽季（數據歸零）</p>
+        <button class="close-btn season-end-btn" onclick="finalWipe()">確認開啟新賽季</button>
+        <button style="background:transparent; color:#888; border:none; margin-top:15px; text-decoration:underline;" onclick="document.getElementById('seasonEndModal').style.display='none'">再等一下 (取消)</button>
     </div>
 
     <div class="modal" id="evoModal">
-        <h2 id="evoTitle">晉升！</h2>
-        <p id="evoDesc">恭喜你突破界限！</p>
-        <button class="close-btn" onclick="document.getElementById('evoModal').style.display='none'">繼續旅程</button>
+        <h2 id="evoTitle">EVOLUTION!</h2>
+        <p id="evoDesc">突破界限！</p>
+        <button class="close-btn" onclick="document.getElementById('evoModal').style.display='none'">繼續</button>
     </div>
 
     <script>
@@ -310,68 +317,107 @@
             dailyXP: 0,
             level: 1,
             lastLogin: new Date().toDateString(),
+            seasonStartDate: new Date().toLocaleDateString(), // 新增: 賽季起始日
+            streakDays: 0,
             dailyStats: {
-                explore: 0, block: 0, target: 0, contract: 0, dungeon: 0,
+                explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0,
                 currentStreak: 0, maxStreak: 0
-            }
+            },
+            lifetimeStats: {}
         };
         
-        let weatherBonus = 1.0;
+        let weatherMultiplier = 0;
+        let timeMultiplier = 0;
+        let streakMultiplier = 0;
         let historyStack = [];
 
-        // 15 階級設定 (對應每月約 20000-22000 XP 的目標)
         const thresholds = {
-            1:  { xp: 0,     title: "新兵",         img: "level1.jpg" },
-            2:  { xp: 300,   title: "學徒",         img: "level2.jpg" },
-            3:  { xp: 800,   title: "一等學徒",     img: "level3.jpg" },
-            4:  { xp: 1500,  title: "二等列兵",     img: "level4.jpg" },
-            5:  { xp: 2400,  title: "一等列兵",     img: "level5.jpg" },
-            6:  { xp: 3500,  title: "下士",         img: "level6.jpg" },
-            7:  { xp: 4800,  title: "二等中士",     img: "level7.jpg" },
-            8:  { xp: 6300,  title: "一等中士",     img: "level8.jpg" },
-            9:  { xp: 8000,  title: "上士",         img: "level9.jpg" },
-            10: { xp: 9900,  title: "專業士官",     img: "level10.jpg" },
-            11: { xp: 12000, title: "二等士官",     img: "level11.jpg" },
-            12: { xp: 14300, title: "一級士官",     img: "level12.jpg" },
-            13: { xp: 16800, title: "二等士官長",   img: "level13.jpg" },
-            14: { xp: 19500, title: "士官長督導長", img: "level14.jpg" },
-            15: { xp: 22500, title: "少尉",         img: "level15.jpg" }
+            1: { xp: 1000, title: "見習獵人", img: "level1.jpg" },
+            2: { xp: 5000, title: "資深獵人", img: "level2.jpg" },
+            3: { xp: 10000, title: "傳說大師", img: "level3.jpg" },
+            4: { xp: 9999999, title: "保險之神", img: "level3.jpg" }
         };
 
         // --- 初始化 ---
         function init() {
-            const saved = localStorage.getItem('salesRPG_v3_save');
-            if (saved) gameState = JSON.parse(saved);
-            
-            if (!gameState.dailyStats) resetDailyStats();
+            const saved = localStorage.getItem('salesRPG_v5_save');
+            if (saved) {
+                gameState = JSON.parse(saved);
+                if (typeof gameState.streakDays === 'undefined') gameState.streakDays = 0;
+                if (!gameState.lifetimeStats) gameState.lifetimeStats = {};
+                // 兼容性檢查：如果舊存檔沒有起始日，補上今天
+                if (!gameState.seasonStartDate) gameState.seasonStartDate = new Date().toLocaleDateString();
+            } else {
+                // 全新遊戲
+                gameState.seasonStartDate = new Date().toLocaleDateString();
+            }
 
             if (gameState.lastLogin !== new Date().toDateString()) {
                 resetDailyStats();
-                gameState.dailyXP = 0;
                 gameState.lastLogin = new Date().toDateString();
                 saveGame();
             }
             
+            checkTimeBonus();
+            calculateMultipliers();
             updateUI();
             initWeather();
+            
+            setInterval(checkTimeBonus, 60000);
         }
 
         function resetDailyStats() {
+            gameState.dailyXP = 0;
             gameState.dailyStats = {
-                explore: 0, block: 0, target: 0, contract: 0, dungeon: 0,
+                explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0,
                 currentStreak: 0, maxStreak: 0
             };
         }
 
-        // --- 動作處理 ---
+        // --- 核心邏輯 ---
+        function checkTimeBonus() {
+            const hour = new Date().getHours();
+            const badge = document.getElementById('buff-time');
+            if (hour >= 14 && hour < 17) {
+                timeMultiplier = 0.1;
+                badge.classList.add('buff-active');
+                badge.innerText = "🕐 午日行者 (+10%)";
+            } else {
+                timeMultiplier = 0;
+                badge.classList.remove('buff-active');
+                badge.innerText = "🕐 午日行者";
+            }
+            calculateMultipliers();
+        }
+
+        function calculateMultipliers() {
+            if (gameState.streakDays >= 2) {
+                let bonus = (gameState.streakDays - 1) * 0.05;
+                if (bonus > 0.30) bonus = 0.30;
+                streakMultiplier = bonus;
+            } else {
+                streakMultiplier = 0;
+            }
+            
+            const sBadge = document.getElementById('buff-streak');
+            if (streakMultiplier > 0) {
+                sBadge.classList.add('buff-active');
+                sBadge.innerText = `🔥 連勝 ${gameState.streakDays}天 (+${Math.round(streakMultiplier*100)}%)`;
+            } else {
+                sBadge.classList.remove('buff-active');
+                sBadge.innerText = `🔥 連勝: ${gameState.streakDays}天`;
+            }
+
+            updateButtonLabels();
+        }
+
         function handleAction(type, baseXP) {
             historyStack.push(JSON.parse(JSON.stringify(gameState)));
             if (historyStack.length > 10) historyStack.shift();
 
             gameState.dailyStats[type]++;
 
-            // 連勝計算
-            if (type === 'target' || type === 'contract' || type === 'dungeon') {
+            if (['target', 'contract', 'dungeon', 'recruit'].includes(type)) {
                 gameState.dailyStats.currentStreak++;
                 if (gameState.dailyStats.currentStreak > gameState.dailyStats.maxStreak) {
                     gameState.dailyStats.maxStreak = gameState.dailyStats.currentStreak;
@@ -380,7 +426,9 @@
                 gameState.dailyStats.currentStreak = 0;
             }
 
-            const finalAmount = Math.floor(baseXP * weatherBonus);
+            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier;
+            const finalAmount = Math.floor(baseXP * totalMult);
+
             gameState.totalXP += finalAmount;
             gameState.dailyXP += finalAmount;
 
@@ -391,184 +439,274 @@
             updateUI();
         }
 
-        // --- 結算系統 ---
+        function handleRecruit() {
+            if(confirm("恭喜成功邀約！\n確認領取 4000 XP？")) handleAction('recruit', 4000);
+        }
+
+        // --- 賽季結算邏輯 ---
+        function requestReset() {
+            if(confirm("【警告】您確定要結束目前的賽季嗎？\n這將會進入結算畫面，確認後資料將永久清除。")) {
+                showSeasonEndSummary();
+            }
+        }
+
+        function showSeasonEndSummary() {
+            // 1. 顯示日期區間
+            const startDate = gameState.seasonStartDate || "未知";
+            const endDate = new Date().toLocaleDateString();
+            document.getElementById('season-date-range').innerText = `${startDate} ~ ${endDate}`;
+
+            // 2. 顯示基本數據
+            let currentRank = thresholds[1].title;
+            if (gameState.level >= 2) currentRank = thresholds[2].title;
+            if (gameState.level >= 3) currentRank = thresholds[3].title;
+            if (gameState.level >= 4) currentRank = thresholds[4].title;
+
+            document.getElementById('season-rank').innerText = `${currentRank} (Lv.${gameState.level})`;
+            document.getElementById('season-xp').innerText = gameState.totalXP;
+            document.getElementById('season-streak').innerText = `${gameState.streakDays} 天`;
+            
+            const recruits = gameState.lifetimeStats["👑 王者降臨"] || 0;
+            document.getElementById('season-recruit').innerText = `${recruits} 位`;
+
+            // 3. 生涯成就列表
+            const list = document.getElementById('seasonAchList');
+            list.innerHTML = "";
+            const stats = gameState.lifetimeStats;
+            const sortedKeys = Object.keys(stats).sort((a,b) => stats[b] - stats[a]);
+            
+            if (sortedKeys.length === 0) {
+                list.innerHTML = "<div style='color:#777; text-align:center; padding:10px;'>本賽季尚無特殊成就</div>";
+            } else {
+                sortedKeys.forEach(key => {
+                    const row = document.createElement('div');
+                    row.className = "list-row";
+                    row.innerHTML = `<span class="list-label">${key}</span><span class="list-val">${stats[key]}次</span>`;
+                    list.appendChild(row);
+                });
+            }
+
+            document.getElementById('seasonEndModal').style.display = 'flex';
+        }
+
+        function finalWipe() {
+            localStorage.removeItem('salesRPG_v5_save');
+            location.reload();
+        }
+
+        // --- 每日結算 ---
+        function getDailyAchievements() {
+            const stats = gameState.dailyStats;
+            const bigWins = stats.contract + stats.dungeon;
+            let achs = [];
+
+            if (stats.recruit >= 1) achs.push({name: "👑 王者降臨", class: "ore-star"});
+
+            if (stats.maxStreak >= 5) achs.push({name: "🎯 彈無虛發-白金", class: "ore-star"});
+            else if (stats.maxStreak >= 4) achs.push({name: "🎯 彈無虛發-金牌", class: "ore-gold"});
+            else if (stats.maxStreak >= 3) achs.push({name: "🎯 彈無虛發-銀牌", class: "ore-iron"});
+            else if (stats.maxStreak >= 2) achs.push({name: "🎯 彈無虛發-銅牌", class: "ore-iron"});
+
+            if (bigWins >= 3) achs.push({name: "🌏 三千世界", class: "ore-star"});
+            else if (bigWins === 2) achs.push({name: "🚩 旗開得勝", class: "ore-gold"});
+            else if (bigWins === 1) achs.push({name: "🎋 勢如破竹", class: "ore-iron"});
+            if (bigWins === 0 && stats.target >= 1) achs.push({name: "🏰 聚沙成塔", class: "ore-iron"});
+
+            const t = stats.target;
+            if (t >= 10) achs.push({name: "💎 礦脈：星辰石", class: "ore-star"});
+            else if (t >= 8) achs.push({name: "💎 礦脈：鑽石", class: "ore-diamond"});
+            else if (t >= 6) achs.push({name: "💎 礦脈：白金", class: "ore-diamond"});
+            else if (t >= 5) achs.push({name: "💎 礦脈：金礦", class: "ore-gold"});
+            else if (t >= 3) achs.push({name: "💎 礦脈：銅礦", class: "ore-iron"});
+
+            if (stats.block >= 5) achs.push({name: "🛡️ 守護之盾", class: "ore-iron"});
+            
+            const potentialStreak = (bigWins >= 1) ? gameState.streakDays + 1 : 0;
+            if (potentialStreak >= 2) achs.push({name: "🔥 小試身手 (連2天)", class: "ore-iron"});
+            if (potentialStreak >= 3) achs.push({name: "🔥 手到擒來 (連3天)", class: "ore-iron"});
+            if (potentialStreak >= 4) achs.push({name: "🔥 一塊蛋糕 (連4天)", class: "ore-gold"});
+            if (potentialStreak >= 5) achs.push({name: "🔥 無人之境 (連5天)", class: "ore-gold"});
+            if (potentialStreak >= 6) achs.push({name: "🔥 GOD LIKE (連6天)", class: "ore-star"});
+            if (potentialStreak >= 7) achs.push({name: "🔥 John Wick (連7天+)", class: "ore-star"});
+
+            return achs;
+        }
+
         function showSettlement() {
             const stats = gameState.dailyStats;
             const bigWins = stats.contract + stats.dungeon;
-            const achList = document.getElementById('achList');
-            achList.innerHTML = "";
-
+            
             document.getElementById('rep-explore').innerText = stats.explore;
             document.getElementById('rep-block').innerText = stats.block;
             document.getElementById('rep-target').innerText = stats.target;
-            document.getElementById('rep-bigwin').innerText = bigWins;
-            document.getElementById('rep-streak').innerText = stats.maxStreak;
+            document.getElementById('rep-recruit').innerText = stats.recruit;
             document.getElementById('rep-xp').innerText = gameState.dailyXP;
 
-            let achievements = [];
-            // 彈無虛發
-            if (stats.maxStreak >= 5) achievements.push({name: "🎯 彈無虛發 - 白金", class: "ore-star"});
-            else if (stats.maxStreak >= 4) achievements.push({name: "🎯 彈無虛發 - 金牌", class: "ore-gold"});
-            else if (stats.maxStreak >= 3) achievements.push({name: "🎯 彈無虛發 - 銀牌", class: "ore-iron"});
-            else if (stats.maxStreak >= 2) achievements.push({name: "🎯 彈無虛發 - 銅牌", class: "ore-iron"});
-
-            // 戰果
-            if (bigWins >= 3) achievements.push({name: "🌏 三千世界 (大殺四方)", class: "ore-star"});
-            else if (bigWins === 2) achievements.push({name: "🚩 旗開得勝", class: "ore-gold"});
-            else if (bigWins === 1) achievements.push({name: "🎋 勢如破竹", class: "ore-iron"});
-            if (bigWins === 0 && stats.target >= 1) achievements.push({name: "🏰 聚沙成塔", class: "ore-iron"});
-
-            // 礦脈
-            const t = stats.target;
-            if (t >= 10) achievements.push({name: "💎 礦脈：星辰石", class: "ore-star"});
-            else if (t === 9) achievements.push({name: "💎 礦脈：澳里哈康", class: "ore-star"});
-            else if (t === 8) achievements.push({name: "💎 礦脈：鑽石", class: "ore-diamond"});
-            else if (t === 7) achievements.push({name: "💎 礦脈：翡翠", class: "ore-diamond"});
-            else if (t === 6) achievements.push({name: "💎 礦脈：白金", class: "ore-diamond"});
-            else if (t === 5) achievements.push({name: "💎 礦脈：金礦", class: "ore-gold"});
-            else if (t === 4) achievements.push({name: "💎 礦脈：銀礦", class: "ore-iron"});
-            else if (t === 3) achievements.push({name: "💎 礦脈：銅礦", class: "ore-iron"});
-            else if (t === 2) achievements.push({name: "💎 礦脈：鐵礦", class: "ore-iron"});
-
-            if (stats.block >= 5) achievements.push({name: "🛡️ 守護之盾", class: "ore-iron"});
-
-            if (achievements.length === 0) {
-                achList.innerHTML = "<div style='color:#777; padding:10px;'>今日尚未獲得成就，繼續加油！</div>";
+            const statusEl = document.getElementById('rep-streak-status');
+            if (bigWins >= 1) {
+                statusEl.innerText = `達成！連勝將延續至 ${gameState.streakDays + 1} 天`;
+                statusEl.style.color = "#4cd137";
             } else {
-                achievements.forEach(ach => {
-                    const div = document.createElement('div');
-                    div.className = `ach-item ${ach.class || ''}`;
-                    div.innerText = ach.name;
-                    achList.appendChild(div);
-                });
+                statusEl.innerText = "未達成，連勝將歸零";
+                statusEl.style.color = "#e74c3c";
             }
+
+            const list = document.getElementById('achList');
+            list.innerHTML = "";
+            const achs = getDailyAchievements();
+            if (achs.length === 0) list.innerHTML = "<div style='color:#777'>無成就</div>";
+            achs.forEach(ach => {
+                const div = document.createElement('div');
+                div.className = `ach-item ${ach.class}`;
+                div.innerText = ach.name;
+                list.appendChild(div);
+            });
 
             document.getElementById('reportModal').style.display = 'flex';
         }
 
         function resetDayAndClose() {
-            if(confirm("確定要結束今天並重置數據嗎？XP 會保留。")) {
-                resetDailyStats();
-                gameState.dailyXP = 0;
-                saveGame();
-                updateUI();
-                document.getElementById('reportModal').style.display = 'none';
+            if(!confirm("確定要結束今天？\n系統將結算連勝並重置數據。")) return;
+
+            const achs = getDailyAchievements();
+            achs.forEach(ach => {
+                const key = ach.name;
+                if (!gameState.lifetimeStats[key]) gameState.lifetimeStats[key] = 0;
+                gameState.lifetimeStats[key]++;
+            });
+
+            const bigWins = gameState.dailyStats.contract + gameState.dailyStats.dungeon;
+            if (bigWins >= 1) gameState.streakDays++;
+            else gameState.streakDays = 0;
+
+            resetDailyStats();
+            gameState.lastLogin = new Date().toDateString();
+            saveGame();
+            calculateMultipliers();
+            updateUI();
+            document.getElementById('reportModal').style.display = 'none';
+        }
+
+        function showLifetimeStats() {
+            const list = document.getElementById('lifetimeList');
+            list.innerHTML = "";
+            const stats = gameState.lifetimeStats;
+            const sortedKeys = Object.keys(stats).sort((a,b) => stats[b] - stats[a]);
+            
+            if (sortedKeys.length === 0) {
+                list.innerHTML = "<div style='color:#777; text-align:center'>尚無記錄</div>";
+            } else {
+                sortedKeys.forEach(key => {
+                    const row = document.createElement('div');
+                    row.className = "list-row";
+                    row.innerHTML = `<span class="list-label">${key}</span><span class="list-val">${stats[key]}次</span>`;
+                    list.appendChild(row);
+                });
+            }
+            document.getElementById('statsModal').style.display = 'flex';
+        }
+
+        // --- 天氣 ---
+        function initWeather() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    try {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=apparent_temperature,rain,showers`;
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        const temp = data.current.apparent_temperature;
+                        const rain = (data.current.rain || 0) + (data.current.showers || 0);
+                        calcWeather(temp, rain);
+                    } catch (e) { 
+                        document.getElementById('buff-weather').innerText = "📡 氣象離線";
+                    }
+                }, () => { document.getElementById('buff-weather').innerText = "📡 定位未開"; });
             }
         }
 
-        // --- 輔助功能 ---
+        function calcWeather(temp, rain) {
+            let bonus = 0;
+            let label = "舒適";
+            if (temp > 30) { bonus += 0.2; label="🔥酷熱"; }
+            else if (temp >= 28) { bonus += 0.1; label="😡炎熱"; }
+            else if (temp < 10) { bonus += 0.2; label="🥶嚴寒"; }
+            else if (temp <= 15) { bonus += 0.1; label="🤧寒冷"; }
+            
+            if (rain > 2.0) { bonus += 0.1; label+="⛈️"; }
+            else if (rain > 0.1) { bonus += 0.05; label+="🌧️"; }
+
+            weatherMultiplier = bonus;
+            const wBadge = document.getElementById('buff-weather');
+            if (bonus > 0) {
+                wBadge.classList.add('buff-active');
+                wBadge.innerText = `📡 ${label} (+${Math.round(bonus*100)}%)`;
+            } else {
+                wBadge.classList.remove('buff-active');
+                wBadge.innerText = `📡 ${label} (無加成)`;
+            }
+            calculateMultipliers();
+        }
+
+        function updateButtonLabels() {
+            const bases = [10, 30, 50, 150, 400];
+            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier;
+            
+            bases.forEach(base => {
+                const final = Math.floor(base * totalMult);
+                const el = document.getElementById(`xp-${base}`);
+                if (totalMult > 1) {
+                    el.innerText = `+${final} (Buff)`;
+                    el.style.color = "#FFD700";
+                } else {
+                    el.innerText = `+${base} XP`;
+                    el.style.color = "white";
+                }
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('currentXP').innerText = gameState.totalXP;
+            document.getElementById('dailyXP').innerText = gameState.dailyXP;
+            
+            let currentRank = thresholds[1];
+            let nextXP = thresholds[1].xp;
+            if (gameState.level >= 2) { currentRank = thresholds[2]; nextXP = thresholds[2].xp; }
+            if (gameState.level >= 3) { currentRank = thresholds[3]; nextXP = thresholds[3].xp; }
+            document.getElementById('rankBadge').innerText = `${currentRank.title} (Lv.${gameState.level})`;
+            
+            const img = document.getElementById('charImg');
+            if (!img.src.includes(currentRank.img)) img.src = currentRank.img;
+
+            let prevXP = gameState.level === 1 ? 0 : (gameState.level === 2 ? 1000 : 5000);
+            let percentage = gameState.level >= 3 ? 100 : ((gameState.totalXP - prevXP) / (nextXP - prevXP)) * 100;
+            document.getElementById('progressBar').style.width = Math.min(percentage, 100) + '%';
+            document.getElementById('progressText').innerText = gameState.level >= 3 ? "MAX LEVEL" : `下一階: ${nextXP - gameState.totalXP}`;
+        }
+
+        function checkLevelUp() {
+            let nextLevel = 1;
+            if (gameState.totalXP >= 1000) nextLevel = 2;
+            if (gameState.totalXP >= 5000) nextLevel = 3;
+            if (nextLevel > gameState.level) {
+                gameState.level = nextLevel;
+                document.getElementById('evoModal').style.display = 'flex';
+                document.getElementById('charFrame').classList.add('evolving');
+                setTimeout(() => document.getElementById('charFrame').classList.remove('evolving'), 2000);
+            }
+        }
+
         function undoLastAction() {
-            if (historyStack.length === 0) { alert("無法復原"); return; }
-            if (confirm("確定復原上一步？")) {
+            if (historyStack.length === 0) return alert("無法復原");
+            if (confirm("復原上一步？")) {
                 gameState = historyStack.pop();
                 saveGame();
                 updateUI();
             }
         }
-
-        // --- 重點：雙重確認刪除 ---
-        function resetAll() {
-            // 第一道鎖
-            if(confirm('⚠️ 警告：這將會刪除目前所有的軍階與經驗值！\n\n您確定要執行「刪除重練」嗎？')) {
-                // 第二道鎖
-                if(confirm('☠️ 嚴重警告：刪除後資料將無法復原！\n\n真的確定要刪除嗎？')) {
-                    localStorage.removeItem('salesRPG_v3_save');
-                    location.reload();
-                }
-            }
-        }
-
-        function initWeather() {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    try {
-                        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&current=apparent_temperature`);
-                        const data = await res.json();
-                        applyWeatherBonus(data.current.apparent_temperature);
-                    } catch (e) { document.getElementById('weatherText').innerText = "氣象離線"; }
-                }, () => { document.getElementById('weatherText').innerText = "定位未開"; });
-            }
-        }
-
-        function applyWeatherBonus(temp) {
-            const badge = document.getElementById('weatherBadge');
-            const icon = document.getElementById('weatherIcon');
-            const text = document.getElementById('weatherText');
-            badge.classList.remove('weather-hot', 'weather-cold');
-            weatherBonus = 1.0;
-            if (temp >= 28) {
-                weatherBonus = 1.1; badge.classList.add('weather-hot');
-                icon.innerText = "🔥"; text.innerText = `烈日 (${temp}°C) XP+10%`;
-            } else if (temp <= 16) {
-                weatherBonus = 1.1; badge.classList.add('weather-cold');
-                icon.innerText = "❄️"; text.innerText = `寒冬 (${temp}°C) XP+10%`;
-            } else { icon.innerText = "☁️"; text.innerText = `舒適 (${temp}°C)`; }
-            updateButtonLabels();
-        }
-
-        function updateButtonLabels() {
-            const bases = [10, 30, 50, 150, 400];
-            bases.forEach(base => {
-                const final = Math.floor(base * weatherBonus);
-                const el = document.getElementById(`xp-${base}`);
-                el.innerText = weatherBonus > 1.0 ? `+${final} (天氣加成)` : `+${base} XP`;
-                el.style.color = weatherBonus > 1.0 ? "#FFD700" : "white";
-            });
-        }
-
-        // --- UI 與升級判斷 ---
-        function updateUI() {
-            document.getElementById('currentXP').innerText = gameState.totalXP;
-            document.getElementById('dailyXP').innerText = gameState.dailyXP;
-
-            // 判斷當前等級與下一階
-            let currentData = thresholds[gameState.level] || thresholds[1];
-            let nextLevelNum = gameState.level + 1;
-            let nextData = thresholds[nextLevelNum];
-
-            document.getElementById('rankBadge').innerText = `${currentData.title} (Lv.${gameState.level})`;
-            
-            const img = document.getElementById('charImg');
-            if (!document.getElementById('charFrame').classList.contains('evolving')) {
-                if (!img.src.includes(currentData.img)) img.src = currentData.img;
-            }
-
-            // 進度條計算
-            if (nextData) {
-                let range = nextData.xp - currentData.xp;
-                let progress = gameState.totalXP - currentData.xp;
-                let percentage = (progress / range) * 100;
-                document.getElementById('progressBar').style.width = Math.min(percentage, 100) + '%';
-                document.getElementById('progressText').innerText = `距離 ${nextData.title}: ${nextData.xp - gameState.totalXP} XP`;
-            } else {
-                document.getElementById('progressBar').style.width = '100%';
-                document.getElementById('progressText').innerText = "已達最高軍階";
-            }
-        }
-
-        function checkLevelUp() {
-            let currentLvl = gameState.level;
-            // 檢查是否滿足下一級的條件
-            // 迴圈檢查，防止一次獲得大量 XP 導致跳級卡住
-            while (thresholds[currentLvl + 1] && gameState.totalXP >= thresholds[currentLvl + 1].xp) {
-                currentLvl++;
-            }
-
-            if (currentLvl > gameState.level) {
-                gameState.level = currentLvl;
-                const frame = document.getElementById('charFrame');
-                frame.classList.add('evolving');
-                setTimeout(() => {
-                    frame.classList.remove('evolving');
-                    document.getElementById('evoModal').style.display = 'flex';
-                    document.getElementById('evoDesc').innerText = `晉升為：${thresholds[currentLvl].title}`;
-                    updateUI();
-                }, 2000);
-            }
-        }
-
-        function saveGame() { localStorage.setItem('salesRPG_v3_save', JSON.stringify(gameState)); }
-        function refreshWeather() { document.getElementById('weatherText').innerText = "更新中..."; initWeather(); }
+        function saveGame() { localStorage.setItem('salesRPG_v5_save', JSON.stringify(gameState)); }
+        function refreshWeather() { document.getElementById('buff-weather').innerText = "更新中..."; initWeather(); }
 
         init();
     </script>
