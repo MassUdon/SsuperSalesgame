@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>業務獵人：軍階戰場</title>
+    <title>業務獵人：數據戰場</title>
     <link rel="apple-touch-icon" href="icon.png">
     
     <style>
@@ -207,7 +207,7 @@
                 🏪 超商副本 <span class="xp-tag" id="xp-400">CRIT +400</span>
             </button>
             <button class="btn btn-recruit" onclick="handleRecruit()">
-                💎 邀約面談 <span class="xp-tag" style="color:#000; font-weight:bold;">LEGEND +4000</span>
+                💎 邀約面談 <span class="xp-tag" id="xp-4000" style="color:#000; font-weight:bold;">LEGEND +4000</span>
             </button>
         </div>
 
@@ -225,9 +225,13 @@
             <div class="list-row"><span class="list-label">👋 探索</span><span class="list-val" id="rep-explore">0</span></div>
             <div class="list-row"><span class="list-label">🛡️ 格檔</span><span class="list-val" id="rep-block">0</span></div>
             <div class="list-row"><span class="list-label">📱 鎖定</span><span class="list-val" id="rep-target">0</span></div>
+            <div class="list-row"><span class="list-label">📜 契約</span><span class="list-val" id="rep-contract">0</span></div>
+            <div class="list-row"><span class="list-label">🏪 副本</span><span class="list-val" id="rep-dungeon">0</span></div>
             <div class="list-row"><span class="list-label">💎 增員</span><span class="list-val" id="rep-recruit">0</span></div>
-            <div class="list-row"><span class="list-label">✨ 今日XP</span><span class="list-val" id="rep-xp">0</span></div>
             <div class="list-row" style="border-top:1px dashed #555; margin-top:5px; padding-top:5px;">
+                <span class="list-label">✨ 今日XP</span><span class="list-val" id="rep-xp">0</span>
+            </div>
+            <div class="list-row">
                 <span class="list-label">🔥 連勝判定</span><span class="list-val" id="rep-streak-status">...</span>
             </div>
         </div>
@@ -246,6 +250,7 @@
     <div class="modal" id="seasonEndModal" style="background: rgba(20, 5, 5, 0.98);">
         <h2 style="color: #e74c3c; font-size: 2.2em; text-shadow: 0 0 20px red;">🏆 賽季總結算</h2>
         <p style="color: #aaa;">本賽季最終成績單</p>
+        
         <div class="list-card" style="border-color: #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.2);">
             <div class="list-row" style="border-bottom: 2px solid #555; margin-bottom: 10px;">
                 <span class="list-label">📅 賽季期間</span><span class="list-val" id="season-date-range" style="font-size:0.9em; color:#FFD700;">-</span>
@@ -253,10 +258,21 @@
             <div class="list-row"><span class="list-label">🛡️ 最終軍階</span><span class="list-val" id="season-rank" style="color:#FFD700; font-size:1.1em;">-</span></div>
             <div class="list-row"><span class="list-label">✨ 累積總 XP</span><span class="list-val" id="season-xp">-</span></div>
             <div class="list-row"><span class="list-label">🔥 最高連勝</span><span class="list-val" id="season-streak">-</span></div>
-            <div class="list-row"><span class="list-label">💎 成功增員</span><span class="list-val" id="season-recruit">-</span></div>
         </div>
+
+        <h3>📊 賽季行動總表</h3>
+        <div class="list-card" style="border: 1px solid #555;">
+            <div class="list-row"><span class="list-label">👋 探索總數</span><span class="list-val" id="season-explore">0</span></div>
+            <div class="list-row"><span class="list-label">🛡️ 格檔總數</span><span class="list-val" id="season-block">0</span></div>
+            <div class="list-row"><span class="list-label">📱 鎖定總數</span><span class="list-val" id="season-target">0</span></div>
+            <div class="list-row"><span class="list-label">📜 契約總數</span><span class="list-val" id="season-contract">0</span></div>
+            <div class="list-row"><span class="list-label">🏪 副本總數</span><span class="list-val" id="season-dungeon">0</span></div>
+            <div class="list-row"><span class="list-label">💎 增員總數</span><span class="list-val" id="season-recruit">0</span></div>
+        </div>
+
         <h3>🏅 生涯成就統計</h3>
-        <div class="list-card" id="seasonAchList" style="max-height:200px; overflow-y:auto; border: 1px solid #555;"></div>
+        <div class="list-card" id="seasonAchList" style="max-height:150px; overflow-y:auto; border: 1px solid #555;"></div>
+        
         <p style="color: #d63031; font-weight: bold; margin-top: 10px;">⚠️ 確認後將開啟新賽季（數據歸零）</p>
         <button class="close-btn season-end-btn" onclick="finalWipe()">確認開啟新賽季</button>
         <button style="background:transparent; color:#888; border:none; margin-top:15px; text-decoration:underline;" onclick="document.getElementById('seasonEndModal').style.display='none'">再等一下 (取消)</button>
@@ -272,20 +288,20 @@
         // --- 核心變數與 15 階級設定 ---
         const thresholds = {
             1: { xp: 500, title: "新人 (Lv.1)", img: "level1.jpg" },
-            2: { xp: 1200, title: "二等兵 (Lv.2)", img: "level2.jpg" },
-            3: { xp: 2500, title: "一等兵 (Lv.3)", img: "level3.jpg" },
-            4: { xp: 4500, title: "上等兵 (Lv.4)", img: "level4.jpg" },
-            5: { xp: 7000, title: "下士 (Lv.5)", img: "level5.jpg" },
-            6: { xp: 10000, title: "中士 (Lv.6)", img: "level6.jpg" },
-            7: { xp: 15000, title: "上士 (Lv.7)", img: "level7.jpg" },
-            8: { xp: 22000, title: "三等士官長 (Lv.8)", img: "level8.jpg" },
-            9: { xp: 30000, title: "二等士官長 (Lv.9)", img: "level9.jpg" },
-            10: { xp: 40000, title: "一等士官長 (Lv.10)", img: "level10.jpg" },
-            11: { xp: 55000, title: "准尉 (Lv.11)", img: "level11jpg" },
-            12: { xp: 75000, title: "少尉 (Lv.12)", img: "level12.jpg" },
-            13: { xp: 100000, title: "中尉 (Lv.13)", img: "level13.jpg" },
-            14: { xp: 150000, title: "上尉 (Lv.14)", img: "level14.jpg" },
-            15: { xp: 9999999, title: "王牌上尉 (MAX)", img: "level15.jpg" }
+            2: { xp: 1200, title: "二等兵 (Lv.2)", img: "level1.jpg" },
+            3: { xp: 2500, title: "一等兵 (Lv.3)", img: "level1.jpg" },
+            4: { xp: 4500, title: "上等兵 (Lv.4)", img: "level1.jpg" },
+            5: { xp: 7000, title: "下士 (Lv.5)", img: "level1.jpg" },
+            6: { xp: 10000, title: "中士 (Lv.6)", img: "level2.jpg" },
+            7: { xp: 15000, title: "上士 (Lv.7)", img: "level2.jpg" },
+            8: { xp: 22000, title: "三等士官長 (Lv.8)", img: "level2.jpg" },
+            9: { xp: 30000, title: "二等士官長 (Lv.9)", img: "level2.jpg" },
+            10: { xp: 40000, title: "一等士官長 (Lv.10)", img: "level2.jpg" },
+            11: { xp: 55000, title: "准尉 (Lv.11)", img: "level3.jpg" },
+            12: { xp: 75000, title: "少尉 (Lv.12)", img: "level3.jpg" },
+            13: { xp: 100000, title: "中尉 (Lv.13)", img: "level3.jpg" },
+            14: { xp: 150000, title: "上尉 (Lv.14)", img: "level3.jpg" },
+            15: { xp: 9999999, title: "王牌上尉 (MAX)", img: "level3.jpg" }
         };
 
         let gameState = {
@@ -296,6 +312,8 @@
             seasonStartDate: new Date().toLocaleDateString(),
             streakDays: 0,
             dailyStats: { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0, currentStreak: 0, maxStreak: 0 },
+            // 新增: 賽季統計數據 (累積用)
+            seasonStats: { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 },
             lifetimeStats: {}
         };
         
@@ -305,14 +323,19 @@
         let historyStack = [];
 
         function init() {
-            const saved = localStorage.getItem('salesRPG_v6_save'); // 使用 v6 存檔
+            const saved = localStorage.getItem('salesRPG_v7_save'); // v7 存檔
             if (saved) {
                 gameState = JSON.parse(saved);
                 if (typeof gameState.streakDays === 'undefined') gameState.streakDays = 0;
                 if (!gameState.lifetimeStats) gameState.lifetimeStats = {};
                 if (!gameState.seasonStartDate) gameState.seasonStartDate = new Date().toLocaleDateString();
+                // 兼容性檢查：初始化賽季統計
+                if (!gameState.seasonStats) {
+                    gameState.seasonStats = { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
+                }
             } else {
                 gameState.seasonStartDate = new Date().toLocaleDateString();
+                gameState.seasonStats = { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
             }
 
             if (gameState.lastLogin !== new Date().toDateString()) {
@@ -385,11 +408,8 @@
 
         function checkLevelUp() {
             let nextLevel = gameState.level;
-            // 檢查是否可以升到更高等級 (最高15)
             for (let i = gameState.level; i < 15; i++) {
-                if (gameState.totalXP >= thresholds[i].xp) {
-                    nextLevel = i + 1;
-                }
+                if (gameState.totalXP >= thresholds[i].xp) nextLevel = i + 1;
             }
             
             if (nextLevel > gameState.level) {
@@ -405,24 +425,17 @@
             document.getElementById('currentXP').innerText = gameState.totalXP;
             document.getElementById('dailyXP').innerText = gameState.dailyXP;
             
-            // 動態取得當前稱號
             let currentData = thresholds[gameState.level] || thresholds[1];
-            let nextData = thresholds[gameState.level] ? thresholds[gameState.level].xp : "MAX";
-            
-            // 顯示稱號
             document.getElementById('rankBadge').innerText = currentData.title;
-            
-            // 圖片邏輯
             const img = document.getElementById('charImg');
             if (!img.src.includes(currentData.img)) img.src = currentData.img;
 
-            // 進度條計算
             let prevXP = 0;
             if (gameState.level > 1) prevXP = thresholds[gameState.level - 1].xp;
             
             let percentage = 0;
             if (gameState.level < 15) {
-                let nextLevelXP = thresholds[gameState.level].xp; // 當前等級的 threshold 其實是到達下一級的門檻
+                let nextLevelXP = thresholds[gameState.level].xp;
                 percentage = ((gameState.totalXP - prevXP) / (nextLevelXP - prevXP)) * 100;
                 document.getElementById('progressText').innerText = `下一階: ${nextLevelXP - gameState.totalXP}`;
             } else {
@@ -432,6 +445,23 @@
             document.getElementById('progressBar').style.width = Math.min(percentage, 100) + '%';
         }
 
+        function updateButtonLabels() {
+            const bases = [10, 30, 50, 150, 400, 4000];
+            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier;
+
+            bases.forEach(base => {
+                const final = Math.floor(base * totalMult);
+                const el = document.getElementById(`xp-${base}`);
+                if (base === 4000) {
+                     if (totalMult > 1) { el.innerText = `LEGEND +${final} (Buff)`; el.style.color = "#000"; }
+                     else { el.innerText = `LEGEND +${base}`; el.style.color = "#000"; }
+                } else {
+                    if (totalMult > 1) { el.innerText = `+${final} (Buff)`; el.style.color = "#FFD700"; }
+                    else { el.innerText = `+${base} XP`; el.style.color = "white"; }
+                }
+            });
+        }
+
         function requestReset() { if(confirm("【警告】結束賽季？\n確認後將顯示結算表並清除檔案。")) showSeasonEndSummary(); }
 
         function showSeasonEndSummary() {
@@ -439,7 +469,15 @@
             document.getElementById('season-rank').innerText = thresholds[gameState.level].title;
             document.getElementById('season-xp').innerText = gameState.totalXP;
             document.getElementById('season-streak').innerText = `${gameState.streakDays} 天`;
-            document.getElementById('season-recruit').innerText = `${gameState.lifetimeStats["👑 王者降臨"] || 0} 位`;
+            
+            // 填入賽季統計行動數據
+            const sStats = gameState.seasonStats || { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
+            document.getElementById('season-explore').innerText = sStats.explore;
+            document.getElementById('season-block').innerText = sStats.block;
+            document.getElementById('season-target').innerText = sStats.target;
+            document.getElementById('season-contract').innerText = sStats.contract;
+            document.getElementById('season-dungeon').innerText = sStats.dungeon;
+            document.getElementById('season-recruit').innerText = sStats.recruit;
 
             const list = document.getElementById('seasonAchList');
             list.innerHTML = "";
@@ -455,7 +493,7 @@
             document.getElementById('seasonEndModal').style.display = 'flex';
         }
 
-        function finalWipe() { localStorage.removeItem('salesRPG_v6_save'); location.reload(); }
+        function finalWipe() { localStorage.removeItem('salesRPG_v7_save'); location.reload(); }
 
         function getDailyAchievements() {
             const stats = gameState.dailyStats;
@@ -495,6 +533,8 @@
             document.getElementById('rep-explore').innerText = stats.explore;
             document.getElementById('rep-block').innerText = stats.block;
             document.getElementById('rep-target').innerText = stats.target;
+            document.getElementById('rep-contract').innerText = stats.contract; // 新增
+            document.getElementById('rep-dungeon').innerText = stats.dungeon;   // 新增
             document.getElementById('rep-recruit').innerText = stats.recruit;
             document.getElementById('rep-xp').innerText = gameState.dailyXP;
             const statusEl = document.getElementById('rep-streak-status');
@@ -515,7 +555,18 @@
             achs.forEach(ach => {
                 const key = ach.name; if (!gameState.lifetimeStats[key]) gameState.lifetimeStats[key] = 0; gameState.lifetimeStats[key]++;
             });
-            const bigWins = gameState.dailyStats.contract + gameState.dailyStats.dungeon;
+            
+            // 累積數據到賽季統計
+            const d = gameState.dailyStats;
+            if(!gameState.seasonStats) gameState.seasonStats = { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
+            gameState.seasonStats.explore += d.explore;
+            gameState.seasonStats.block += d.block;
+            gameState.seasonStats.target += d.target;
+            gameState.seasonStats.contract += d.contract;
+            gameState.seasonStats.dungeon += d.dungeon;
+            gameState.seasonStats.recruit += d.recruit;
+
+            const bigWins = d.contract + d.dungeon;
             if (bigWins >= 1) gameState.streakDays++; else gameState.streakDays = 0;
             resetDailyStats(); gameState.lastLogin = new Date().toDateString(); saveGame(); calculateMultipliers(); updateUI();
             document.getElementById('reportModal').style.display = 'none';
@@ -537,7 +588,7 @@
             if (historyStack.length === 0) return alert("無法復原");
             if (confirm("復原上一步？")) { gameState = historyStack.pop(); saveGame(); updateUI(); }
         }
-        function saveGame() { localStorage.setItem('salesRPG_v6_save', JSON.stringify(gameState)); }
+        function saveGame() { localStorage.setItem('salesRPG_v7_save', JSON.stringify(gameState)); }
         function initWeather() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(async (position) => {
@@ -560,16 +611,6 @@
             if (bonus > 0) { wBadge.classList.add('buff-active'); wBadge.innerText = `📡 ${label} (+${Math.round(bonus*100)}%)`; }
             else { wBadge.classList.remove('buff-active'); wBadge.innerText = `📡 ${label} (無加成)`; }
             calculateMultipliers();
-        }
-        function updateButtonLabels() {
-            const bases = [10, 30, 50, 150, 400];
-            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier;
-            bases.forEach(base => {
-                const final = Math.floor(base * totalMult);
-                const el = document.getElementById(`xp-${base}`);
-                if (totalMult > 1) { el.innerText = `+${final} (Buff)`; el.style.color = "#FFD700"; }
-                else { el.innerText = `+${base} XP`; el.style.color = "white"; }
-            });
         }
         function refreshWeather() { document.getElementById('buff-weather').innerText = "更新中..."; initWeather(); }
 
