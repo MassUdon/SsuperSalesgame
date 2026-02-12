@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>業務獵人：數據戰場</title>
+    <title>業務獵人：假日戰士</title>
     <link rel="apple-touch-icon" href="icon.png">
     
     <style>
@@ -155,13 +155,9 @@
         .close-btn { padding: 10px 30px; background: #FFD700; color: #000; border: none; border-radius: 30px; font-weight: 900; margin-top: 10px; cursor: pointer; }
         .season-end-btn { background: linear-gradient(90deg, #c0392b, #e74c3c); color: white; box-shadow: 0 0 15px rgba(231, 76, 60, 0.5); padding: 15px 40px; font-size: 1.2em; border: 2px solid #fff; }
 
-        /* 賽季結算列表專用 (加大版) */
         #seasonAchList {
-            max-height: 40vh; /* 最多佔視窗40%高度 */
-            min-height: 250px; /* 保證最小高度，避免太扁 */
-            overflow-y: auto;
-            border: 1px solid #555;
-            margin-bottom: 20px;
+            max-height: 40vh; min-height: 250px; overflow-y: auto;
+            border: 1px solid #555; margin-bottom: 20px;
         }
 
         .evolving { animation: evolutionShake 2s ease-in-out forwards; }
@@ -175,6 +171,7 @@
             <div id="buff-weather" class="buff-badge" onclick="refreshWeather()">📡 氣象</div>
             <div id="buff-time" class="buff-badge">🕐 午日行者</div>
             <div id="buff-streak" class="buff-badge">🔥 連勝: 0天</div>
+            <div id="buff-holiday" class="buff-badge">📅 假日戰士</div>
         </div>
 
         <div class="rank-badge" id="rankBadge">載入中...</div>
@@ -321,7 +318,6 @@
             seasonStartDate: new Date().toLocaleDateString(),
             streakDays: 0,
             dailyStats: { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0, currentStreak: 0, maxStreak: 0 },
-            // 新增: 賽季統計數據 (累積用)
             seasonStats: { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 },
             lifetimeStats: {}
         };
@@ -329,19 +325,17 @@
         let weatherMultiplier = 0;
         let timeMultiplier = 0;
         let streakMultiplier = 0;
+        let holidayMultiplier = 0; // 新增假日加成
         let historyStack = [];
 
         function init() {
-            const saved = localStorage.getItem('salesRPG_v7_save'); // v7 存檔
+            const saved = localStorage.getItem('salesRPG_v7_save'); 
             if (saved) {
                 gameState = JSON.parse(saved);
                 if (typeof gameState.streakDays === 'undefined') gameState.streakDays = 0;
                 if (!gameState.lifetimeStats) gameState.lifetimeStats = {};
                 if (!gameState.seasonStartDate) gameState.seasonStartDate = new Date().toLocaleDateString();
-                // 兼容性檢查：初始化賽季統計
-                if (!gameState.seasonStats) {
-                    gameState.seasonStats = { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
-                }
+                if (!gameState.seasonStats) gameState.seasonStats = { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
             } else {
                 gameState.seasonStartDate = new Date().toLocaleDateString();
                 gameState.seasonStats = { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
@@ -354,10 +348,12 @@
             }
             
             checkTimeBonus();
+            checkHolidayBonus(); // 檢查假日
             calculateMultipliers();
             updateUI();
             initWeather();
             setInterval(checkTimeBonus, 60000);
+            setInterval(checkHolidayBonus, 60000);
         }
 
         function resetDailyStats() {
@@ -372,6 +368,44 @@
                 timeMultiplier = 0.1; badge.classList.add('buff-active'); badge.innerText = "🕐 午日行者 (+10%)";
             } else {
                 timeMultiplier = 0; badge.classList.remove('buff-active'); badge.innerText = "🕐 午日行者";
+            }
+            calculateMultipliers();
+        }
+
+        function checkHolidayBonus() {
+            const today = new Date();
+            const day = today.getDay(); // 0-6
+            const dateStr = `${today.getMonth()+1}/${today.getDate()}`; // M/D
+            const fullDateStr = `${today.getFullYear()}/${today.getMonth()+1}/${today.getDate()}`; // YYYY/M/D
+
+            // 台灣固定假日 (月/日)
+            const fixedHolidays = ['1/1', '2/28', '4/4', '4/5', '5/1', '10/10'];
+            
+            // 2026農曆重要連假預估 (僅列出主要節日當天與補假範圍，可自行擴充)
+            // 2026除夕: 2/16 (或前後), 這裡列出大概範圍供測試，實際需每年校正
+            const specificHolidays = [
+                '2026/2/17','2026/2/18','2026/2/19','2026/2/20','2026/2/21', // 春節
+                '2026/6/19', // 端午
+                '2026/9/25'  // 中秋
+            ];
+
+            let isHoliday = false;
+            // 1. 週末 (六日)
+            if (day === 0 || day === 6) isHoliday = true;
+            // 2. 固定假日
+            if (fixedHolidays.includes(dateStr)) isHoliday = true;
+            // 3. 特殊假日
+            if (specificHolidays.includes(fullDateStr)) isHoliday = true;
+
+            const badge = document.getElementById('buff-holiday');
+            if (isHoliday) {
+                holidayMultiplier = 0.1; 
+                badge.classList.add('buff-active'); 
+                badge.innerText = "📅 假日戰士 (+10%)";
+            } else {
+                holidayMultiplier = 0; 
+                badge.classList.remove('buff-active'); 
+                badge.innerText = "📅 假日戰士";
             }
             calculateMultipliers();
         }
@@ -402,7 +436,8 @@
                 if (gameState.dailyStats.currentStreak > gameState.dailyStats.maxStreak) gameState.dailyStats.maxStreak = gameState.dailyStats.currentStreak;
             } else if (type === 'block') { gameState.dailyStats.currentStreak = 0; }
 
-            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier;
+            // 總加成包含假日
+            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier + holidayMultiplier;
             const finalAmount = Math.floor(baseXP * totalMult);
             gameState.totalXP += finalAmount;
             gameState.dailyXP += finalAmount;
@@ -420,7 +455,6 @@
             for (let i = gameState.level; i < 15; i++) {
                 if (gameState.totalXP >= thresholds[i].xp) nextLevel = i + 1;
             }
-            
             if (nextLevel > gameState.level) {
                 gameState.level = nextLevel;
                 document.getElementById('evoModal').style.display = 'flex';
@@ -433,7 +467,6 @@
         function updateUI() {
             document.getElementById('currentXP').innerText = gameState.totalXP;
             document.getElementById('dailyXP').innerText = gameState.dailyXP;
-            
             let currentData = thresholds[gameState.level] || thresholds[1];
             document.getElementById('rankBadge').innerText = currentData.title;
             const img = document.getElementById('charImg');
@@ -441,7 +474,6 @@
 
             let prevXP = 0;
             if (gameState.level > 1) prevXP = thresholds[gameState.level - 1].xp;
-            
             let percentage = 0;
             if (gameState.level < 15) {
                 let nextLevelXP = thresholds[gameState.level].xp;
@@ -456,7 +488,7 @@
 
         function updateButtonLabels() {
             const bases = [10, 30, 50, 150, 400, 4000];
-            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier;
+            const totalMult = 1 + weatherMultiplier + timeMultiplier + streakMultiplier + holidayMultiplier;
 
             bases.forEach(base => {
                 const final = Math.floor(base * totalMult);
@@ -479,7 +511,6 @@
             document.getElementById('season-xp').innerText = gameState.totalXP;
             document.getElementById('season-streak').innerText = `${gameState.streakDays} 天`;
             
-            // 填入賽季統計行動數據
             const sStats = gameState.seasonStats || { explore: 0, block: 0, target: 0, contract: 0, dungeon: 0, recruit: 0 };
             document.getElementById('season-explore').innerText = sStats.explore;
             document.getElementById('season-block').innerText = sStats.block;
@@ -542,8 +573,8 @@
             document.getElementById('rep-explore').innerText = stats.explore;
             document.getElementById('rep-block').innerText = stats.block;
             document.getElementById('rep-target').innerText = stats.target;
-            document.getElementById('rep-contract').innerText = stats.contract; // 新增
-            document.getElementById('rep-dungeon').innerText = stats.dungeon;   // 新增
+            document.getElementById('rep-contract').innerText = stats.contract;
+            document.getElementById('rep-dungeon').innerText = stats.dungeon;
             document.getElementById('rep-recruit').innerText = stats.recruit;
             document.getElementById('rep-xp').innerText = gameState.dailyXP;
             const statusEl = document.getElementById('rep-streak-status');
